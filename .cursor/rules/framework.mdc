@@ -1,0 +1,18 @@
+---
+description: Roteamento do framework EventHub para tarefas, specs e leitura de contexto
+alwaysApply: true
+---
+
+# Framework EventHub
+
+Antes de qualquer tarefa:
+
+1. leia `.cursor/framework_core/project/agent-entrypoint.md`;
+2. leia `.cursor/framework_core/project/active-libs.md`;
+3. consulte `.cursor/framework_core/BOARD.md`;
+4. use `.cursor/framework_global/framework-base/prompts/framework-router-prompt.md` para gatilhos `fw:*`;
+5. preserve os repo-id `backend` e `frontend` definidos em `project/project-catalog-entry.md`;
+6. mantenha o board atualizado ao criar, promover, executar ou concluir artefato;
+7. nunca leia ou exponha valores de `.env`.
+
+Memoria especifica vive em `.cursor/framework_core/`. Conteudo global atualizavel vive em `.cursor/framework_global/` e nao deve receber fatos exclusivos do EventHub.

@@ -1,0 +1,622 @@
+// DBML gerado a partir de: art56_server_v3/prisma/schema.prisma
+// Fonte da verdade: Prisma schema (MySQL, relationMode = "prisma")
+// Note: relationMode "prisma" indica que FKs podem ser gerenciadas em aplicação; Ref abaixo descreve o modelo lógico.
+
+Enum ContactType {
+  TEAM_MEMBER
+  SUPPLIER
+}
+
+Enum PersonType {
+  GUEST
+  WORKER
+}
+
+Enum TrafficSource {
+  AIRBNB
+  GOOGLE
+  INSTAGRAM
+  TIKTOK
+  OTHER
+  FRIEND
+  FACEBOOK
+}
+
+Enum ProposalType {
+  EVENT
+  OVERNIGHT
+  PRODUCTION
+  BARTER
+  OTHER
+}
+
+Enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+}
+
+Enum ProposalName {
+  RECEPTIONIST
+  SECURITY
+  CLEANER
+}
+
+Enum ExpenseType {
+  WEEKLY
+  ANNUAL
+  MONTHLY
+  BIWEEKLY
+  SPORADIC
+}
+
+Enum ExpenseCategory {
+  TAX
+  INVESTMENT
+  MAINTENANCE
+  ADVERTISING
+}
+
+Enum NotificationType {
+  VISIT
+  EVENT
+  OTHER
+  BARTER
+  PROPOSAL
+  OVERNIGHT
+  PRODUCTION
+}
+
+Enum DateEventType {
+  VISIT
+  EVENT
+  OTHER
+  BARTER
+  PROPOSAL
+  OVERNIGHT
+  PRODUCTION
+}
+
+Enum SeasonalFeeType {
+  SURCHARGE
+  DISCOUNT
+}
+
+Enum PricingModel {
+  PER_PERSON
+  PER_DAY
+  PER_PERSON_DAY
+  PER_PERSON_HOUR
+  TIERED
+}
+
+Enum DocumentType {
+  PDF
+  IMAGE
+}
+
+Table refresh_token {
+  id varchar [pk]
+  expireIn int [not null]
+  userId varchar [not null, ref: > user.id]
+  createdAt datetime [default: `now()`, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table session {
+  id varchar [pk]
+  userId varchar [not null, ref: > user.id]
+  refreshTokenId varchar [not null, ref: > refresh_token.id]
+  ipAddress varchar [null]
+  isValid boolean [default: true, not null]
+  createdAt datetime [default: `now()`, not null]
+  expiresAt datetime [not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table user {
+  id varchar [pk]
+  email varchar [unique, not null]
+  username varchar [not null]
+  password varchar [not null]
+  avatarUrl varchar [null]
+  googleId varchar [unique, null]
+  fcmToken varchar [null]
+  passwordResetToken varchar [null]
+  passwordResetExpires datetime [null]
+  emailConfirmationToken varchar [null]
+  emailConfirmationExpires datetime [null]
+  emailConfirmed boolean [default: false, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table organization {
+  id varchar [pk]
+  name varchar [unique, not null]
+  createdAt datetime [default: `now()`, not null]
+  whatsappNumber varchar [null]
+  tiktokUrl varchar [null]
+  instagramUrl varchar [null]
+  email varchar [unique, null]
+  url varchar [null]
+  facebookUrl varchar [null]
+  logoUrl varchar [null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table userOrganization {
+  id varchar [pk]
+  userId varchar [not null, ref: > user.id]
+  organizationId varchar [not null, ref: > organization.id]
+  joinedAt datetime [default: `now()`, not null]
+  Note: 'unique(userId, organizationId). Prisma @default(uuid()) em id'
+}
+
+Table userVenuePermission {
+  id varchar [pk]
+  venueId varchar [not null, ref: > venue.id]
+  role varchar [null]
+  userOrganizationId varchar [not null, ref: > userOrganization.id]
+  permissions longtext [not null]
+  Note: 'unique(userOrganizationId, venueId). Prisma @default(uuid()) em id'
+}
+
+Table userOrganizationPermission {
+  id varchar [pk]
+  role varchar [null]
+  userOrganizationId varchar [unique, not null, ref: > userOrganization.id]
+  permissions longtext [not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table venue {
+  id varchar [pk]
+  name varchar [unique, not null]
+  description longtext [null]
+  email varchar [unique, null]
+  url varchar [null]
+  facebookUrl varchar [null]
+  isShowOnOrganization boolean [default: false, null]
+  logoUrl varchar [null]
+  minimumPrice float [default: 0, null]
+  whatsappNumber varchar [null]
+  tiktokUrl varchar [null]
+  instagramUrl varchar [null]
+  street varchar [not null]
+  streetNumber varchar [not null]
+  complement varchar [null]
+  neighborhood varchar [not null]
+  city varchar [not null]
+  state varchar [not null]
+  checkIn varchar [default: '12:00', null]
+  checkOut varchar [default: '12:00', null]
+  openingHour varchar [null]
+  closingHour varchar [null]
+  cep varchar [not null]
+  hasOvernightStay boolean [not null]
+  minimumNights int [default: 1, null]
+  createdAt datetime [default: `now()`, not null]
+  organizationId varchar [not null, ref: > organization.id]
+  pricingModel PricingModel [not null]
+  pricePerPerson float [null]
+  pricePerDay float [null]
+  pricePerPersonDay float [null]
+  pricePerPersonHour float [null]
+  standardEventDuration int [null]
+  maxGuest int [not null]
+  Note: 'Prisma @default(uuid()) em id. Relação 1:1 com tiered_price via tiered_price.venueId'
+}
+
+Table tiered_price {
+  id varchar [pk]
+  venueId varchar [unique, not null, ref: - venue.tieredPrice]
+  createdAt datetime [default: `now()`, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table tier {
+  id varchar [pk]
+  tieredPriceId varchar [not null, ref: > tiered_price.id]
+  minGuests int [not null]
+  maxGuests int [not null]
+  price float [not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table proposal {
+  id varchar [pk]
+  completeCompanyName varchar [null]
+  completeClientName varchar [not null]
+  cpf varchar [null]
+  cnpj varchar [null]
+  rg varchar [null]
+  street varchar [null]
+  streetNumber varchar [null]
+  neighborhood varchar [null]
+  cep varchar [null]
+  city varchar [null]
+  state varchar [null]
+  type ProposalType [not null]
+  trafficSource TrafficSource [not null]
+  adressComplement varchar [null]
+  guestNumber int [not null]
+  knowsVenue boolean [default: false, not null]
+  startDate datetime [not null]
+  endDate datetime [not null]
+  email varchar [not null]
+  whatsapp varchar [not null]
+  description longtext [not null]
+  hostMessage longtext [null]
+  basePrice float [not null]
+  extraHoursQty int [not null]
+  extraHourPrice float [not null]
+  totalAmount float [not null]
+  termsAccepted boolean [default: false, not null]
+  approved boolean [default: false, not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  contact boolean [null]
+  paid boolean [default: false, null]
+  amountPaid float [default: 0, null]
+  venueId varchar [not null, ref: > venue.id]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table _ProposalToProposalCost {
+  A varchar [not null, ref: > proposal.id]
+  B varchar [not null, ref: > proposalCost.id]
+  Note: 'Tabela implícita Prisma many-to-many Proposal <-> ProposalCost'
+}
+
+Table proposalCost {
+  id varchar [pk]
+  name ProposalName [not null]
+  teste varchar [not null]
+  amount float [not null]
+  updatedAt datetime [not null]
+  createdAt datetime [default: `now()`, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table history {
+  id varchar [pk]
+  action varchar [not null]
+  username varchar [null]
+  userId varchar [null, ref: > user.id]
+  proposalId varchar [not null, ref: > proposal.id]
+  createdAt datetime [default: `now()`, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table person {
+  id varchar [pk]
+  attendance boolean [default: false, not null]
+  type PersonType [not null]
+  name varchar [not null]
+  email varchar [null]
+  rg varchar [null]
+  confirmAttendanceEmail boolean [default: false, not null]
+  proposalId varchar [not null, ref: > proposal.id]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table proposalService {
+  id varchar [pk]
+  proposalId varchar [not null, ref: > proposal.id]
+  serviceId varchar [not null, ref: > service.id]
+  teste varchar [null]
+  joinedAt datetime [default: `now()`, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table service {
+  id varchar [pk]
+  name varchar [not null]
+  price float [not null]
+  venueId varchar [not null, ref: > venue.id]
+  rpaRequired boolean [default: false, not null]
+  rpaMinPeople int [null]
+  Note: 'unique(name, venueId). Prisma @default(uuid()) em id'
+}
+
+Table payment {
+  id varchar [pk]
+  proposalId varchar [not null, ref: > proposal.id]
+  venueId varchar [not null, ref: > venue.id]
+  amount float [not null]
+  paymentDate datetime [not null]
+  paymentMethod PaymentMethod [null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  imageUrl varchar [null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table expense {
+  id varchar [pk]
+  name varchar [not null]
+  description varchar [null]
+  amount float [not null]
+  paymentDate datetime [null]
+  type ExpenseType [not null]
+  category ExpenseCategory [not null]
+  recurring boolean [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  venueId varchar [not null, ref: > venue.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table notification {
+  id varchar [pk]
+  venueId varchar [not null, ref: > venue.id]
+  proposalId varchar [null, ref: > proposal.id]
+  dateEventId varchar [null, ref: > dataEvent.id]
+  content varchar [not null]
+  type NotificationType [not null]
+  createdAt datetime [default: `now()`, not null]
+  isRead boolean [default: false, not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table dataEvent {
+  id varchar [pk]
+  title varchar [not null]
+  startDate datetime [not null]
+  endDate datetime [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  proposalId varchar [null, ref: > proposal.id]
+  venueId varchar [not null, ref: > venue.id]
+  type DateEventType [not null]
+  googleEventId varchar [null]
+  googleCalendarId varchar [null]
+  Note: 'Prisma @@map("dataEvent"). @default(cuid()) em id. googleEventId/googleCalendarId para sync Google Calendar'
+}
+
+Table google_calendar_integration {
+  id varchar [pk]
+  userId varchar [not null, ref: > user.id]
+  organizationId varchar [not null, ref: > organization.id]
+  googleCalendarId varchar [null]
+  accessTokenEncrypted longtext [not null]
+  refreshTokenEncrypted longtext [not null]
+  scope varchar [null]
+  tokenExpiresAt datetime [null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  Note: 'Prisma @default(uuid()). @@unique([userId, organizationId])'
+}
+
+Table goal {
+  id varchar [pk]
+  minValue float [not null]
+  maxValue float [null]
+  increasePercent float [not null]
+  months varchar [not null]
+  venueId varchar [not null, ref: > venue.id]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table seasonalFee {
+  id varchar [pk]
+  type SeasonalFeeType [not null]
+  title varchar [not null]
+  startDay varchar [null]
+  endDay varchar [null]
+  fee int [not null]
+  venueId varchar [not null, ref: > venue.id]
+  affectedDays varchar [null]
+  Note: 'Prisma @default(uuid()) em id. Model: SeasonalFee'
+}
+
+Table contact {
+  id varchar [pk]
+  name varchar [not null]
+  role varchar [null]
+  instagramUrl varchar [null]
+  facebookUrl varchar [null]
+  tiktokUrl varchar [null]
+  url varchar [null]
+  whatsapp varchar [not null]
+  venueId varchar [not null, ref: > venue.id]
+  email varchar [null]
+  type ContactType [default: TEAM_MEMBER, null]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table ownerVenue {
+  id varchar [pk]
+  ownerId varchar [not null, ref: > owner.id]
+  venueId varchar [not null, ref: > venue.id]
+  role varchar [default: 'ADMIN', not null]
+  joinedAt datetime [default: `now()`, not null]
+  Note: 'unique(ownerId, venueId). Prisma @default(uuid()) em id'
+}
+
+Table owner {
+  id varchar [pk]
+  completeName varchar [not null]
+  rg varchar [null]
+  cpf varchar [not null]
+  pix varchar [not null]
+  street varchar [not null]
+  streetNumber varchar [not null]
+  complement varchar [null]
+  neighborhood varchar [not null]
+  city varchar [not null]
+  state varchar [not null]
+  bankName varchar [not null]
+  bankAgency varchar [not null]
+  cep varchar [not null]
+  createdAt datetime [default: `now()`, not null]
+  bankAccountNumber varchar [not null]
+  organizationId varchar [not null, ref: > organization.id]
+  Note: 'Prisma @default(uuid()) em id'
+}
+
+Table image {
+  id varchar [pk]
+  imageUrl longtext [not null]
+  group varchar [null]
+  description varchar [null]
+  position int [not null]
+  createdAt datetime [default: `now()`, null]
+  updatedAt datetime [null]
+  responsiveMode varchar [null]
+  tag varchar [null]
+  isShowOnOrganization boolean [default: false, null]
+  venueId varchar [null, ref: > venue.id]
+  organizationId varchar [null, ref: > organization.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table text {
+  id varchar [pk]
+  area varchar [not null]
+  title varchar [null]
+  position int [default: 0, not null]
+  text longtext [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  venueId varchar [null, ref: > venue.id]
+  organizationId varchar [null, ref: > organization.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table document {
+  id varchar [pk]
+  imageUrl varchar [not null]
+  title varchar [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  thumbnailUrl varchar [null]
+  fileType DocumentType [not null]
+  proposalId varchar [not null, ref: > proposal.id]
+  paymentId varchar [null, ref: > payment.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table question {
+  id varchar [pk]
+  question longtext [not null]
+  response longtext [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  venueId varchar [not null, ref: > venue.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table contract {
+  id varchar [pk]
+  name varchar [not null]
+  title varchar [not null]
+  organizationId varchar [not null, ref: > organization.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table clause {
+  id varchar [pk]
+  text longtext [not null]
+  title longtext [not null]
+  position int [null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  organizationId varchar [null, ref: > organization.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table _ContractClauses {
+  A varchar [not null, ref: > contract.id]
+  B varchar [not null, ref: > clause.id]
+  Note: 'Tabela implícita Prisma many-to-many Contract <-> Clause'
+}
+
+Table _ContractVenues {
+  A varchar [not null, ref: > contract.id]
+  B varchar [not null, ref: > venue.id]
+  Note: 'Tabela implícita Prisma many-to-many Contract <-> Venue'
+}
+
+Table attachments {
+  id varchar [pk]
+  text longtext [not null]
+  title longtext [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  organizationId varchar [null, ref: > organization.id]
+  venueId varchar [null, ref: > venue.id]
+  Note: 'Prisma @@map("attachments"). @default(cuid()) em id'
+}
+
+Table emailConfig {
+  id varchar [pk]
+  backgroundImageUrl varchar [null]
+  title varchar [null]
+  type varchar [not null]
+  message longtext [null]
+  venueId varchar [not null, ref: > venue.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Table schedule {
+  id varchar [pk]
+  name varchar [not null]
+  workerNumber int [not null]
+  description longtext [null]
+  startHour datetime [not null]
+  endHour datetime [not null]
+  createdAt datetime [default: `now()`, not null]
+  updatedAt datetime [not null]
+  proposalId varchar [not null, ref: > proposal.id]
+  Note: 'Prisma @default(cuid()) em id'
+}
+
+Indexes {
+  refresh_token: userId
+  session: userId
+  session: expiresAt
+  session: refreshTokenId
+  userOrganization: organizationId
+  userVenuePermission: userOrganizationId
+  userVenuePermission: venueId
+  userOrganizationPermission: userOrganizationId
+  proposal: venueId
+  proposal: trafficSource
+  proposal: email, startDate
+  proposal: completeClientName, startDate
+  history: userId
+  history: proposalId
+  person: proposalId
+  proposalService: proposalId
+  proposalService: serviceId
+  service: venueId
+  payment: proposalId
+  payment: venueId
+  expense: venueId
+  notification: venueId
+  notification: dateEventId
+  notification: proposalId
+  dataEvent: proposalId
+  dataEvent: venueId
+  goal: venueId
+  seasonalFee: venueId
+  contact: venueId
+  ownerVenue: venueId
+  owner: organizationId
+  image: venueId
+  image: organizationId
+  text: venueId
+  text: organizationId
+  document: paymentId
+  document: proposalId
+  question: venueId
+  contract: organizationId
+  clause: organizationId
+  attachments: organizationId
+  attachments: venueId
+  emailConfig: venueId
+  schedule: proposalId
+  tier: tieredPriceId
+}
