@@ -4,7 +4,7 @@
 
 1. leia `project/agent-entrypoint.md`;
 2. identifique o `repo-id` afetado em `project/project-catalog-entry.md`;
-3. abra o topic da area e somente as libs ativas necessarias;
+3. abra o map da frente (`project/backend-map.md`, `project/api-endpoints.md`, `project/frontend-map.md`), o topic da area e somente as libs ativas necessarias;
 4. confirme se existe task-request ou spec no `BOARD.md`;
 5. para auth, permissao, PII, pagamento, upload ou segredo, inclua `security`;
 6. para mudanca multi-repo, use `fw:split` depois de criar o artefato canonico.

@@ -478,14 +478,16 @@ backend: art56_server_v3/src/router/venue.ts, art56_server_v3/src/use-cases/venu
 **Permissões:** não encontrado  
 
 **Query Params:**  
-- venueId, year (opcional), approved (opcional)  
+- venueId, year (opcional), approved (opcional), average (opcional; `true` inclui a média dos anos)  
 
 **Response (Success):**  
 status: 200  
-`{}`  
+`{ data: { total, approved, analysisEventsByMonth, analysisProposalByMonth, averageYears?, averageByMonth? } }`  
+
+Com `average=true`, `averageYears` lista os anos com receita do espaço (mesma regra do Desempenho Mensal) e `averageByMonth` traz, por mês (`jan.` a `dez.`), `proposals` e `approved` (média por ano, contando como zero o ano sem proposta no mês) e `rate` (aprovados somados / propostas somadas, em %). Sem anos com receita, `averageYears` e `averageByMonth` vêm vazios.  
 
 **Arquivos de referência:**  
-backend: art56_server_v3/src/router/venue.ts, art56_server_v3/src/use-cases/venue/get-analysis-by-month-venue  
+backend: art56_server_v3/src/router/venue.ts, art56_server_v3/src/use-cases/venue/get-analysis-by-month-venue, art56_server_v3/src/functions/monthly-average-by-years.ts  
 
 ---
 
@@ -605,6 +607,7 @@ backend: art56_server_v3/src/router/venue.ts, art56_server_v3/src/use-cases/venu
 **Response (Success):**  
 status: 200  
 `data.proposalYears`: anos (wall-clock de `startDate`) em que o espaço tem pelo menos um orçamento, ordem crescente, sem repetir. A lista não depende do mês/ano filtrado.
+`data.yearlyChange`: `{ events, proposals, visits, revenue }`, sempre presente. Cada campo é o inteiro `Math.round(((atual - anterior) / anterior) * 100)` contra o mesmo mês do ano anterior (com `month=all`, contra o ano anterior inteiro), ou `null` quando o ano anterior é 0. `events` conta `DateEvent` `EVENT`, `proposals` conta orçamentos por `startDate`, `visits` conta `DateEvent` `VISIT` e `revenue` soma `proposal.totalAmount` dos `DateEvent` `EVENT`. `proposalsVariation`, `visitsVariation` e `revenueVariation` continuam comparando com o mês anterior, por compatibilidade, e saem quando nenhuma tela os ler.
 
 **Arquivos de referência:**  
 backend: art56_server_v3/src/router/venue.ts, art56_server_v3/src/use-cases/venue/get-venue-analytics  
@@ -2059,7 +2062,13 @@ status: 200
 {
   "data": {
     "notificationList": [],
-    "summary": { "unread": 0, "last7Days": 0, "last30Days": 0, "newProposals": 0 }
+    "summary": {
+      "unread": 0,
+      "last7Days": 0,
+      "last30Days": 0,
+      "newProposals": 0,
+      "change": { "last7Days": null, "last30Days": null, "newProposals": null }
+    }
   },
   "count": 0,
   "pagination": { "page": 1, "pageSize": 10, "total": 0, "totalPages": 0 }
@@ -2067,6 +2076,8 @@ status: 200
 ```
 
 `summary` só vem com `summary=true`. `pagination` só vem com `page`. `count` é o tamanho da página. `unread` é `isRead` falso no filtro (`isRead=true` zera). `last7Days` e `last30Days` usam `createdAt` contra o instante do servidor menos 7 ou 30 dias de 24 horas. `newProposals` é `PROPOSAL` nessa janela de 30 dias. Ordem: `createdAt` descendente, `id` descendente.
+
+`change` compara cada contagem de período com a janela imediatamente anterior de mesmo tamanho, no mesmo filtro: `last7Days` contra [agora−14d, agora−7d), `last30Days` e `newProposals` contra [agora−60d, agora−30d). Valor = `round((atual − anterior) / anterior × 100)`, inteiro; `null` quando a janela anterior é 0. `unread` não tem variação.
 
 **Arquivos de referência:**  
 backend: art56_server_v3/src/router/notification.ts  

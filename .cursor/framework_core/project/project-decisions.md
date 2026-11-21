@@ -50,6 +50,14 @@ Fatos e excecoes locais; desejos futuros nao sao decisao.
 - estado: ativo;
 - efeito: o core roteia e resume; mudancas atualizam tambem os docs detalhados impactados.
 
+### D-09 Banco no PlanetScale com deploy requests
+
+- estado: ativo, observado por `pscale` em 2026-11-08;
+- fato: banco `ar756` da org `igorlabakig`, Vitess/MySQL; `main` e producao com safe migrations; deploy requests `#19` a `#43` aplicados;
+- efeito: DDL nasce em branch de desenvolvimento e entra por deploy request; `prisma migrate deploy` nao registra historico neste banco;
+- lacuna: sem staging, sem aprovacao obrigatoria de deploy e sem webhooks;
+- detalhe: `project/planetscale.md`.
+
 ## Decisoes pendentes
 
 - owners e canal oficial;
@@ -58,7 +66,8 @@ Fatos e excecoes locais; desejos futuros nao sao decisao.
 - politica monetaria e arredondamento;
 - estados oficiais de Proposal;
 - SLO, RPO e RTO;
-- CI/CD e gates obrigatorios.
+- CI/CD e gates obrigatorios;
+- permissoes de agentes no PlanetScale e branch de staging (`DR-07`).
 
 ## Atualizacao
 

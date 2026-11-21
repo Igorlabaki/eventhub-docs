@@ -7,11 +7,12 @@
 - DR-03: estados oficiais de Proposal;
 - DR-04: politica monetaria e arredondamento;
 - DR-05: ambientes, promocao, rollback, SLO, RPO e RTO;
-- DR-06: estrategia de autorizacao por recurso.
+- DR-06: estrategia de autorizacao por recurso;
+- DR-07: permissoes de agentes no PlanetScale (padrao provisorio somente leitura, em `../project/planetscale.md`), aprovacao obrigatoria de deploy request e criacao de branch `staging`.
 
 ## Decisoes tomadas
 
-As decisoes observadas D-01 a D-08 estao em `../project/project-decisions.md`. Elas descrevem estado real, nao aprovacao retroativa de alternativas.
+As decisoes observadas D-01 a D-09 estao em `../project/project-decisions.md`. Elas descrevem estado real, nao aprovacao retroativa de alternativas.
 
 ## Decisoes adiadas ou canceladas
 

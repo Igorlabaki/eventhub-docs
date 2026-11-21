@@ -1,21 +1,62 @@
 # Domain Model — EventHub
 
-## Agregados e relacoes
+## Eixos
 
-- identidade: User, Session e RefreshToken;
-- tenancy/acesso: Organization, UserOrganization, UserOrganizationPermission e UserVenuePermission;
-- espaco: Venue, Service, Expense, Goal, SeasonalFee, MinimumPricePeriod, Contact, Question, EmailConfig, Image e Text;
-- comercial: Proposal, Payment, Document, Person, Schedule, History e DateEvent;
-- contratos: Contract, Clause e Attachment;
-- ownership: Owner e OwnerVenue;
+```text
+User --< UserOrganization >-- Organization --< Venue --< Proposal
+            |                      |              |          |
+            |-- OrgPermission      |-- Owner      |-- config |-- operacao do evento
+            |-- VenuePermission    |-- Contract   |-- site   |-- dinheiro
+                                   |-- Clause
+```
+
+Organization contem Venues. Proposal pertence a Venue. Quase toda a operacao deriva desses dois eixos.
+
+## Agregados
+
+- identidade: User, Session, RefreshToken;
+- tenancy e acesso: Organization, UserOrganization, UserOrganizationPermission, UserVenuePermission;
+- configuracao comercial do espaco: Venue (modelo de preco, capacidade, horarios, marca), Service, SeasonalFee, MinimumPricePeriod, Goal, TieredPrice/Tier;
+- conteudo do espaco: VenueRule, VenueAmenity, Question (FAQ), Image, Text, EmailConfig, Contact (equipe e parceiros);
+- comercial: Proposal, ProposalService (snapshot de servico), ProposalCost, ProposalIndication (parceiros indicados), History, Notification;
+- evento: DateEvent (agenda; com ou sem Proposal), Person (convidado ou trabalhador), Schedule (programacao), Document;
+- financeiro: Payment, Expense;
+- contratos: Contract, Clause, Attachment;
+- ownership: Owner, OwnerVenue;
 - integracao: GoogleCalendarIntegration.
 
-Organization contem Venues. Proposal pertence a Venue. A maior parte da operacao deriva desses dois eixos. Contract liga Organization a Clauses e Venues. DateEvent pode existir com ou sem Proposal.
+## Linguagem do produto
 
-## Invariantes importantes
+| Termo na tela | Entidade |
+|---|---|
+| Orcamento / Proposta | Proposal |
+| Evento (fechado) | Proposal com `approved = true` e DateEvent `EVENT`/`PRODUCTION`/`BARTER` |
+| Visita | DateEvent `VISIT` |
+| Adicional / Desconto | SeasonalFee SURCHARGE / DISCOUNT |
+| Preco minimo | `Venue.minimumPrice` e MinimumPricePeriod |
+| Meta | Goal |
+| Caracteristica | VenueAmenity |
+| Regra do espaco | VenueRule |
+| Parceiro / Fornecedor | Contact `SUPPLIER` com PartnerCategory |
+| Colaborador / Equipe | Contact `TEAM_MEMBER` (cadastro) e Person `WORKER` (lista do evento) |
+| Convidado | Person `GUEST` |
+| Programacao | Schedule |
+| Cores da casa | `Venue.proposal*Color` |
 
-Unicidades de organization, venue, user email e vinculos de permissao devem ser preservadas. Proposal exige Venue; Payment exige Proposal e Venue; Document exige Proposal. Como `relationMode = "prisma"`, a aplicacao precisa manter integridade.
+## Invariantes
+
+- unicidade: Organization.name/email, Venue.name/email, User.email/googleId, (user, organization), (userOrganization, venue), (service.name, venue), (amenity.name, venue), (proposal, contact) em indicacao, (owner, venue);
+- Proposal exige Venue; Payment exige Proposal e Venue; Document, Person, Schedule e History exigem Proposal;
+- pagamento nao excede o saldo devedor; `amountPaid` acompanha pagamentos;
+- `eventCategory` obrigatoria para `type = EVENT`;
+- horas de servico por hora inteiras e nunca acima da duracao do evento;
+- lista de convidados limitada a `guestNumber`; colaboradores sem limite;
+- com `relationMode = "prisma"`, a aplicacao mantem a integridade.
+
+## Ciclo implicito da Proposal
+
+criada (publico ou painel) -> `approved = false` (Aberto) -> contato, edicao, envio, contrato -> DateEvent de evento cria `approved = true` (Fechado) -> pagamentos somam `amountPaid` -> operacao do dia (pessoas, programacao, documentos). Apagar o DateEvent volta a `approved = false`. Nao ha maquina de estados oficial (decisao pendente).
 
 ## Fonte detalhada
 
-`docs/referencias/DOMAIN_MODEL.md` e `art56_server_v3/prisma/schema.prisma`.
+`product/08-data-model.md`, `docs/referencias/DOMAIN_MODEL.md` e `art56_server_v3/prisma/schema.prisma`.

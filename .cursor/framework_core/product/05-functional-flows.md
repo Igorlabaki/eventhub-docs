@@ -21,4 +21,10 @@
 
 ## Mapas detalhados
 
-`flows/proposal-lifecycle-current.md`, `flows/auth-and-access-current.md` e `flows/google-calendar-current.md`.
+- `flows/proposal-lifecycle-current.md`: ciclo comercial e estados implicitos;
+- `flows/public-budget-request-current.md`: do formulario publico ao orcamento apresentado;
+- `flows/event-operation-current.md`: contato, contrato, agenda, pagamento e operacao do dia;
+- `flows/auth-and-access-current.md`: login, sessao, refresh e permissoes;
+- `flows/google-calendar-current.md`: OAuth e sync de agenda.
+
+Telas e endpoints de cada passo: `project/frontend-map.md` e `project/api-endpoints.md`.
